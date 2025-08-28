@@ -7,3 +7,31 @@ Problem Statement
 In today’s fast-paced world, there is a significant rise in health-related problems, particularly among the younger population. The primary causes include poor dietary habits, irregular sleep cycles, mental stress, and lack of physical activity. Managing daily health and overall well-being has become a challenge. In extreme circumstances such as wars, natural disasters, or pandemics, these issues are amplified, leaving common people and patients vulnerable without access to proper care or monitoring. There is a strong need for a sustainable, smart health solution that can assist people in maintaining their health, even during crises.
 
 
+Python Libaries 
+
+1. ehrdata
+  A foundational data structure for storing and accessing EHR datasets.
+Designed for FAIR (Findable, Accessible, Interoperable, Reusable) data principles. Often used alongside EHrapy for deeper analysis.
+
+2. FHIRClient
+   Python client for interacting with FHIR (Fast Healthcare Interoperability Resources) servers.
+Useful for building apps that connect to hospital systems or public health APIs. Supports authentication, resource queries, and data parsing.
+
+3. PyHealthcare
+   A toolkit for healthcare data analysis, including EHRs.
+Offers utilities for patient clustering, risk prediction, and time-series modeling.
+
+4. GNU Health (Python-based)
+  A full health information system with EMR, lab, and patient modules.
+Built with Python and PostgreSQL. Ideal for community clinics or low-resource settings.
+
+5. Othes Tools for Data Science in Healthcare
+pandas: For tabular data manipulation.
+scikit-learn: For predictive modeling.
+lifelines: For survival analysis.
+tsfresh: For time-series feature extraction—great for patient monitoring data.
+
+
+
+
+
