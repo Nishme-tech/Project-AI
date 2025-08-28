@@ -1,0 +1,427 @@
+//Designg and develop a secure and user-friendly authentication login page in Flutter with a healthcare theme and the following features:
+Healthcare-themed design: Incorporate soothing colors like blue, green, and white, with medical icons (e.g., stethoscopes, heartbeats) to fit the theme.
+Modern and responsive UI for both desktop and mobile devices.
+Fields for email/username and password input with stylish, rounded input boxes.
+Password visibility toggle (show/hide password) to improve usability.
+Strong password validation: Require at least 8 characters with a combination of uppercase, lowercase, numbers, and special characters.
+Implement multi-factor authentication (MFA) as an optional extra step for additional security.
+Use secure encryption methods for handling user credentials.
+“Remember Me” checkbox functionality to keep users logged in across sessions.
+Display clear and helpful error messages for invalid credentials or missing fields.
+Include a “Forgot Password” link and a “Sign Up” button for new users.
+Incorporate a rate limiting mechanism or CAPTCHA to prevent brute-force attacks.
+Ensure accessibility with proper keyboard navigation, screen reader support, and high contrast text for visual clarity.
+Follow best practices for security and user experience throughout the design and code.
+Use Flutter widgets for a clean, maintainable codebase and a smooth user experience.
+Design the UI to feel professional, trustworthy, and intuitive for healthcare users. //
+
+
+import 'dart:async'; // Required for Future, though often implicitly available.
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// DATA_MODEL
+/// Manages the state and logic for the authentication process.
+class AuthenticationData extends ChangeNotifier {
+  String _email;
+  String _password;
+  bool _rememberMe;
+  bool _isPasswordVisible;
+  bool _isMfaPreferenceEnabled; // User's preference for MFA
+  bool _isCaptchaVerified;
+  String? _loginErrorMessage;
+
+  /// Initializes the authentication data with default values.
+  AuthenticationData()
+      : _email = '',
+        _password = '',
+        _rememberMe = false,
+        _isPasswordVisible = false,
+        _isMfaPreferenceEnabled = false,
+        _isCaptchaVerified = false,
+        _loginErrorMessage = null;
+
+  String get email => _email;
+  String get password => _password;
+  bool get rememberMe => _rememberMe;
+  bool get isPasswordVisible => _isPasswordVisible;
+  bool get isMfaPreferenceEnabled => _isMfaPreferenceEnabled;
+  bool get isCaptchaVerified => _isCaptchaVerified;
+  String? get loginErrorMessage => _loginErrorMessage;
+
+  /// Sets the email/username and clears any previous login error.
+  void setEmail(String value) {
+    _email = value;
+    _loginErrorMessage = null; // Clear error on input change
+    notifyListeners();
+  }
+
+  /// Sets the password and clears any previous login error.
+  void setPassword(String value) {
+    _password = value;
+    _loginErrorMessage = null; // Clear error on input change
+    notifyListeners();
+  }
+
+  /// Toggles the "Remember Me" status.
+  void toggleRememberMe(bool? value) {
+    _rememberMe = value ?? false;
+    notifyListeners();
+  }
+
+  /// Toggles the visibility of the password input.
+  void togglePasswordVisibility() {
+    _isPasswordVisible = !_isPasswordVisible;
+    notifyListeners();
+  }
+
+  /// Toggles the user's preference for Multi-Factor Authentication.
+  void toggleMfaPreference(bool? value) {
+    _isMfaPreferenceEnabled = value ?? false;
+    notifyListeners();
+  }
+
+  /// Toggles the CAPTCHA verification status.
+  void verifyCaptcha(bool? value) {
+    _isCaptchaVerified = value ?? false;
+    notifyListeners();
+  }
+
+  /// Simulates a login attempt.
+  ///
+  /// This method performs client-side validation for non-empty fields
+  /// and then simulates a network request. It updates `_loginErrorMessage`
+  /// based on the simulated outcome.
+  Future<void> login() async {
+    _loginErrorMessage = null;
+    notifyListeners();
+
+    // Basic client-side validation for non-empty fields
+    if (_email.isEmpty || _password.isEmpty) {
+      _loginErrorMessage = 'Please enter both email/username and password.';
+      notifyListeners();
+      return;
+    }
+
+    // Simulate network delay for a more realistic user experience
+    await Future<void>.delayed(const Duration(seconds: 1));
+
+    // Simulate successful login for specific credentials, otherwise failure
+    // In a real application, this would involve calling an authentication API.
+    if (_email == 'user@example.com' && _password == 'SecurePass123!') {
+      String successMessage = 'Login successful!';
+      if (_isMfaPreferenceEnabled) {
+        successMessage = '$successMessage MFA would now be initiated.';
+      }
+      _loginErrorMessage = successMessage;
+      // In a real app, navigate to home screen or MFA screen.
+    } else {
+      _loginErrorMessage = 'Invalid email/username or password.';
+    }
+    notifyListeners();
+  }
+
+  /// Clears any currently displayed login error message.
+  void clearError() {
+    _loginErrorMessage = null;
+    notifyListeners();
+  }
+}
+
+class HealthLoginPage extends StatefulWidget {
+  const HealthLoginPage({super.key});
+
+  @override
+  State<HealthLoginPage> createState() => _HealthLoginPageState();
+}
+
+class _HealthLoginPageState extends State<HealthLoginPage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  /// Validator function for the password input field.
+  ///
+  /// Ensures the password meets strong security requirements:
+  /// - Minimum 8 characters
+  /// - At least one uppercase letter
+  /// - At least one lowercase letter
+  /// - At least one number
+  /// - At least one special character
+  String? _passwordValidator(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Password is required.';
+    }
+    if (value.length < 8) {
+      return 'Password must be at least 8 characters long.';
+    }
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      return 'Password must contain at least one uppercase letter.';
+    }
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      return 'Password must contain at least one lowercase letter.';
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      return 'Password must contain at least one number.';
+    }
+    // Using a broad regex for special characters.
+    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      return 'Password must contain at least one special character.';
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AuthenticationData authData =
+        Provider.of<AuthenticationData>(context);
+    // Determine if the screen width is suitable for a desktop-like layout.
+    final bool isDesktop = MediaQuery.of(context).size.width > 600;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+                maxWidth:
+                    isDesktop ? 450 : double.infinity), // Max width for desktop
+            child: Form(
+              key: _formKey,
+              child: Card(
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Icon(
+                        Icons.health_and_safety, // Healthcare themed icon
+                        color: Colors.green[600],
+                        size: 80,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Secure Healthcare Login',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[800],
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      TextFormField(
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: _inputDecoration(
+                          'Email / Username',
+                          Icons.person,
+                        ),
+                        onChanged: authData.setEmail,
+                        validator: (String? value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your email or username.';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        obscureText: !authData.isPasswordVisible,
+                        decoration: _inputDecoration(
+                          'Password',
+                          Icons.lock,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              authData.isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey[600],
+                            ),
+                            onPressed: authData.togglePasswordVisibility,
+                          ),
+                        ),
+                        onChanged: authData.setPassword,
+                        validator: _passwordValidator,
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Flexible(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Checkbox(
+                                  value: authData.rememberMe,
+                                  onChanged: authData.toggleRememberMe,
+                                  activeColor: Colors.green[600],
+                                ),
+                                const Flexible(child: Text('Remember Me')),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              _showSnackBar(context,
+                                  'Forgot Password functionality not implemented.');
+                            },
+                            child: Text(
+                              'Forgot Password?',
+                              style: TextStyle(color: Colors.blue[700]),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      SwitchListTile(
+                        title: const Text('Enable Multi-Factor Auth'),
+                        value: authData.isMfaPreferenceEnabled,
+                        onChanged: authData.toggleMfaPreference,
+                        activeColor: Colors.green[600],
+                        secondary:
+                            Icon(Icons.security, color: Colors.blue[700]),
+                      ),
+                      const SizedBox(height: 10),
+                      CheckboxListTile(
+                        title: const Text('I\'m not a robot'),
+                        value: authData.isCaptchaVerified,
+                        onChanged: authData.verifyCaptcha,
+                        activeColor: Colors.green[600],
+                        controlAffinity: ListTileControlAffinity.leading,
+                      ),
+                      if (authData.loginErrorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10.0),
+                          child: Text(
+                            authData.loginErrorMessage!,
+                            style: TextStyle(
+                              color: authData.loginErrorMessage!
+                                      .contains('successful')
+                                  ? Colors.green[700] // Success message color
+                                  : Colors.red, // Error message color
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: authData.isCaptchaVerified
+                              ? () {
+                                  if (_formKey.currentState!.validate()) {
+                                    authData.login();
+                                  } else {
+                                    // Clear general login error if form validation fails
+                                    authData.clearError();
+                                  }
+                                }
+                              : null, // Button is disabled if CAPTCHA is not verified
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[700],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            foregroundColor: Colors.white,
+                            textStyle: const TextStyle(fontSize: 18),
+                          ),
+                          child: const Text('Login'),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () {
+                          _showSnackBar(
+                              context, 'Sign Up functionality not implemented.');
+                        },
+                        child: Text(
+                          'Don\'t have an account? Sign Up',
+                          style: TextStyle(color: Colors.blue[700]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Creates a consistent, healthcare-themed input decoration for text fields.
+  InputDecoration _inputDecoration(String label, IconData icon,
+      {Widget? suffixIcon}) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(color: Colors.grey[700]),
+      prefixIcon: Icon(icon, color: Colors.blue[500]),
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[200]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[300]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.blue[700]!, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.blue[50]!.withOpacity(0.5), // Soothing light blue fill
+    );
+  }
+
+  /// Displays a SnackBar with the given message.
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+}
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<AuthenticationData>(
+      create: (BuildContext context) => AuthenticationData(),
+      builder: (BuildContext context, Widget? child) {
+        return MaterialApp(
+          title: 'Healthcare App', // Title for the app, not displayed in UI
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+            // Define a text theme for better contrast and readability
+            textTheme: const TextTheme(
+              bodyLarge: TextStyle(color: Color.fromARGB(255, 30, 30, 30)),
+              bodyMedium: TextStyle(color: Color.fromARGB(255, 60, 60, 60)),
+              labelLarge: TextStyle(color: Color.fromARGB(255, 20, 20, 20)),
+            ),
+          ),
+          home: const HealthLoginPage(),
+        );
+      },
+    );
+  }
+}
