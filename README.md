@@ -1,6 +1,6 @@
 # Patient health recommdeation system 
 
-Healthy Vibes: 
+Healthy Vibes
 This project introduces a smart Patient Health Recommendation System that offers personalized health and lifestyle advice based on user data, medical history, and real-time metrics [Electronic Health Record - EHR]. Integrating AI and wearable tech, it supports disease prevention, early detection, and proactive care. It enables doctor-patient communication, provides health alerts, reminders, and dashboards, while ensuring data privacy and security. Healthy VIbes 24/7 is a personalized AI-driven healthcare solution aimed at providing real-time health monitoring and nutrition recommendations for individuals dealing with chronic illnesses like cancer and diabetes.
 
 Problem Statement
