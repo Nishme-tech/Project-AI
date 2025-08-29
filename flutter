@@ -1,0 +1,379 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Riverpod Providers for dynamic data simulation
+final bloodPressureProvider = StateProvider<String>((ref) => '120/80');
+final heartRateProvider = StateProvider<String>((ref) => '72 bpm');
+final temperatureProvider = StateProvider<String>((ref) => '98.6°F');
+final bloodSugarProvider = StateProvider<String>((ref) => '95 mg/dL');
+final healthScoreProvider = StateProvider<int>((ref) => 85);
+
+void main() {
+  runApp(const ProviderScope(child: HealthyVibesApp()));
+}
+
+class HealthyVibesApp extends StatelessWidget {
+  const HealthyVibesApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Healthy Vibes',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Roboto',
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: Colors.grey[100],
+      ),
+      home: const PatientDashboard(),
+    );
+  }
+}
+
+class PatientDashboard extends ConsumerWidget {
+  const PatientDashboard({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bloodPressure = ref.watch(bloodPressureProvider);
+    final heartRate = ref.watch(heartRateProvider);
+    final temperature = ref.watch(temperatureProvider);
+    final bloodSugar = ref.watch(bloodSugarProvider);
+    final healthScore = ref.watch(healthScoreProvider);
+
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Responsive grid count for cards
+    int crossAxisCount;
+    if (screenWidth >= 1200) {
+      crossAxisCount = 4;
+    } else if (screenWidth >= 800) {
+      crossAxisCount = 2;
+    } else {
+      crossAxisCount = 1;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        toolbarHeight: 60,
+        backgroundColor: Colors.white,
+        elevation: 1,
+        titleSpacing: 20,
+        title: Row(
+          children: [
+            // Icon - mimic the app icon from design
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF00D2FF), Color(0xFF3A7BD5)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.favorite, color: Colors.white),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Healthy Vibes',
+                  style: TextStyle(
+                      color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18),
+                ),
+                Text(
+                  'Patient Dashboard',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                )
+              ],
+            ),
+            const Spacer(),
+            // Menu Items
+            TextButton(
+                onPressed: () {},
+                child: const Text('Overview',
+                    style: TextStyle(
+                        color: Color(0xFF00D2FF),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14))),
+            TextButton(
+                onPressed: () {},
+                child: const Text('Health Tracking',
+                    style: TextStyle(color: Colors.black54, fontSize: 14))),
+            TextButton(
+                onPressed: () {},
+                child: const Text('Medications',
+                    style: TextStyle(color: Colors.black54, fontSize: 14))),
+            TextButton(
+                onPressed: () {},
+                child: const Text('Recommendations',
+                    style: TextStyle(color: Colors.black54, fontSize: 14))),
+            TextButton(
+                onPressed: () {},
+                child: const Text('Appointments',
+                    style: TextStyle(color: Colors.black54, fontSize: 14))),
+            TextButton(
+                onPressed: () {},
+                child: const Text('Reports',
+                    style: TextStyle(color: Colors.black54, fontSize: 14))),
+            const SizedBox(width: 20),
+            // Icons on right
+            IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none, color: Colors.black54)),
+            IconButton(onPressed: () {}, icon: const Icon(Icons.chat_bubble_outline, color: Colors.black54)),
+            IconButton(onPressed: () {}, icon: const Icon(Icons.person_outline, color: Colors.black54)),
+            const SizedBox(width: 8),
+            const Text('nishme', style: TextStyle(color: Colors.black87)),
+            const SizedBox(width: 8),
+            TextButton(onPressed: () {}, child: const Text('Logout')),
+          ],
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Gradient header welcome box
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1A73E8), Color(0xFF00C853)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Welcome Texts
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'Welcome back, nishme!',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Patient ID: HV242017',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'Your health journey continues today',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  // Health Score Box
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(80, 255, 255, 255),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.monitor_heart, color: Colors.white, size: 28),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Health Score',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        Text(
+                          '$healthScore%',
+                          style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Vital cards grid
+            GridView.count(
+              crossAxisCount: crossAxisCount,
+              shrinkWrap: true,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 3,
+              children: [
+                VitalCard(
+                  label: 'Blood Pressure',
+                  value: bloodPressure,
+                  unit: '',
+                  status: 'Normal',
+                  icon: Icons.speed,
+                  iconColor: Colors.green,
+                ),
+                VitalCard(
+                  label: 'Heart Rate',
+                  value: heartRate,
+                  unit: '',
+                  status: 'Normal',
+                  icon: Icons.favorite,
+                  iconColor: Colors.green,
+                ),
+                VitalCard(
+                  label: 'Temperature',
+                  value: temperature,
+                  unit: '',
+                  status: 'Normal',
+                  icon: Icons.thermostat,
+                  iconColor: Colors.green,
+                ),
+                VitalCard(
+                  label: 'Blood Sugar',
+                  value: bloodSugar,
+                  unit: '',
+                  status: 'Normal',
+                  icon: Icons.bloodtype,
+                  iconColor: Colors.green,
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            // Health Alerts box
+            Container(
+              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: Colors.red),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Time to take your evening medication',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
+                              fontSize: 16),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          '6:00 PM',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('View Details'),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class VitalCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final String unit;
+  final String status;
+  final IconData icon;
+  final Color iconColor;
+
+  const VitalCard({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.unit,
+    required this.status,
+    required this.icon,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Colors.black87,
+                    )),
+                const SizedBox(height: 6),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: value,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                      if (unit.isNotEmpty)
+                        TextSpan(
+                          text: ' $unit',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  status,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 12,
+                      color: Colors.green),
+                )
+              ],
+            ),
+          ),
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
