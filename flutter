@@ -1,12 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Data model for health alerts
+class HealthAlert {
+  final String id;
+  final String title;
+  final String message;
+  final DateTime time;
+  final bool isWarning;
+  final IconData icon;
+  final Color iconColor;
+
+  HealthAlert({
+    required this.id,
+    required this.title,
+    required this.message,
+    required this.time,
+    this.isWarning = false,
+    this.icon = Icons.info_outline,
+    this.iconColor = Colors.blue,
+  });
+}
+
 // Riverpod Providers for dynamic data simulation
 final bloodPressureProvider = StateProvider<String>((ref) => '120/80');
 final heartRateProvider = StateProvider<String>((ref) => '72 bpm');
 final temperatureProvider = StateProvider<String>((ref) => '98.6°F');
 final bloodSugarProvider = StateProvider<String>((ref) => '95 mg/dL');
 final healthScoreProvider = StateProvider<int>((ref) => 85);
+
+// Provider for selected navigation page index
+final selectedPageIndexProvider = StateProvider<int>((ref) => 0); // 0: Overview, 1: Health Tracking, etc.
+final List<String> navigationTitles = const [
+  'Overview',
+  'Health Tracking',
+  'Medications',
+  'Recommendations',
+  'Appointments',
+  'Reports',
+];
+
+// Provider for health alerts
+final healthAlertsProvider = StateProvider<List<HealthAlert>>((ref) => [
+      HealthAlert(
+        id: 'med_reminder_1',
+        title: 'Time to take your evening medication',
+        message: 'Don\'t forget your daily dose of Metformin.',
+        time: DateTime.now().add(const Duration(minutes: 5)),
+        isWarning: true,
+        icon: Icons.access_time,
+        iconColor: Colors.red,
+      ),
+      HealthAlert(
+        id: 'appointment_reminder_1',
+        title: 'Upcoming Doctor Appointment',
+        message: 'Cardiology check-up tomorrow at 10:00 AM.',
+        time: DateTime.now().add(const Duration(days: 1)),
+        isWarning: false,
+        icon: Icons.calendar_today,
+        iconColor: Colors.blue,
+      ),
+      HealthAlert(
+        id: 'blood_pressure_review',
+        title: 'Review Blood Pressure Logs',
+        message:
+            'Your recent readings show a slight increase. Consider reviewing with your doctor.',
+        time: DateTime.now().subtract(const Duration(hours: 1)),
+        isWarning: true,
+        icon: Icons.speed,
+        iconColor: Colors.orange,
+      ),
+      HealthAlert(
+        id: 'flu_shot_due',
+        title: 'Annual Flu Shot Due',
+        message: 'It\'s time for your yearly flu vaccination. Schedule an appointment soon.',
+        time: DateTime.now().add(const Duration(days: 30)),
+        isWarning: false,
+        icon: Icons.medical_services,
+        iconColor: Colors.lightBlue,
+      ),
+    ]);
 
 void main() {
   runApp(const ProviderScope(child: HealthyVibesApp()));
@@ -40,6 +113,8 @@ class PatientDashboard extends ConsumerWidget {
     final temperature = ref.watch(temperatureProvider);
     final bloodSugar = ref.watch(bloodSugarProvider);
     final healthScore = ref.watch(healthScoreProvider);
+    final selectedPageIndex = ref.watch(selectedPageIndexProvider);
+    final healthAlerts = ref.watch(healthAlertsProvider);
 
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -54,85 +129,34 @@ class PatientDashboard extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 60,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        titleSpacing: 20,
-        title: Row(
-          children: [
-            // Icon - mimic the app icon from design
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF00D2FF), Color(0xFF3A7BD5)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.favorite, color: Colors.white),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Healthy Vibes',
-                  style: TextStyle(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18),
-                ),
-                Text(
-                  'Patient Dashboard',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                )
-              ],
-            ),
-            const Spacer(),
-            // Menu Items
-            TextButton(
-                onPressed: () {},
-                child: const Text('Overview',
-                    style: TextStyle(
-                        color: Color(0xFF00D2FF),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14))),
-            TextButton(
-                onPressed: () {},
-                child: const Text('Health Tracking',
-                    style: TextStyle(color: Colors.black54, fontSize: 14))),
-            TextButton(
-                onPressed: () {},
-                child: const Text('Medications',
-                    style: TextStyle(color: Colors.black54, fontSize: 14))),
-            TextButton(
-                onPressed: () {},
-                child: const Text('Recommendations',
-                    style: TextStyle(color: Colors.black54, fontSize: 14))),
-            TextButton(
-                onPressed: () {},
-                child: const Text('Appointments',
-                    style: TextStyle(color: Colors.black54, fontSize: 14))),
-            TextButton(
-                onPressed: () {},
-                child: const Text('Reports',
-                    style: TextStyle(color: Colors.black54, fontSize: 14))),
-            const SizedBox(width: 20),
-            // Icons on right
-            IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none, color: Colors.black54)),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.chat_bubble_outline, color: Colors.black54)),
-            IconButton(onPressed: () {}, icon: const Icon(Icons.person_outline, color: Colors.black54)),
-            const SizedBox(width: 8),
-            const Text('nishme', style: TextStyle(color: Colors.black87)),
-            const SizedBox(width: 8),
-            TextButton(onPressed: () {}, child: const Text('Logout')),
-          ],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: CustomAppBar(
+          screenWidth: screenWidth,
+          navigationTitles: navigationTitles,
+          selectedPageIndex: selectedPageIndex,
+          onNavigate: (index) {
+            ref.read(selectedPageIndexProvider.notifier).state = index;
+            debugPrint('Navigating to: ${navigationTitles[index]}');
+            // In a real app, this would update the body content
+          },
+          onNotification: () => debugPrint('Notifications tapped'),
+          onChat: () => debugPrint('Chat tapped'),
+          onProfile: () => debugPrint('Profile tapped'),
+          onLogout: () => debugPrint('Logout tapped'),
         ),
       ),
+      drawer: screenWidth < 800
+          ? CustomDrawer(
+              navigationTitles: navigationTitles,
+              selectedPageIndex: selectedPageIndex,
+              onNavigate: (index) {
+                ref.read(selectedPageIndexProvider.notifier).state = index;
+                debugPrint('Navigating to: ${navigationTitles[index]} (from drawer)');
+                Navigator.of(context).pop(); // Close drawer
+              },
+            )
+          : null,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -178,14 +202,16 @@ class PatientDashboard extends ConsumerWidget {
                   ),
                   // Health Score Box
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(80, 255, 255, 255),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
                       children: [
-                        const Icon(Icons.monitor_heart, color: Colors.white, size: 28),
+                        const Icon(Icons.monitor_heart,
+                            color: Colors.white, size: 28),
                         const SizedBox(height: 6),
                         const Text(
                           'Health Score',
@@ -213,11 +239,10 @@ class PatientDashboard extends ConsumerWidget {
               mainAxisSpacing: 16,
               physics: const NeverScrollableScrollPhysics(),
               childAspectRatio: 3,
-              children: [
+              children: <Widget>[
                 VitalCard(
                   label: 'Blood Pressure',
                   value: bloodPressure,
-                  unit: '',
                   status: 'Normal',
                   icon: Icons.speed,
                   iconColor: Colors.green,
@@ -225,7 +250,6 @@ class PatientDashboard extends ConsumerWidget {
                 VitalCard(
                   label: 'Heart Rate',
                   value: heartRate,
-                  unit: '',
                   status: 'Normal',
                   icon: Icons.favorite,
                   iconColor: Colors.green,
@@ -233,7 +257,6 @@ class PatientDashboard extends ConsumerWidget {
                 VitalCard(
                   label: 'Temperature',
                   value: temperature,
-                  unit: '',
                   status: 'Normal',
                   icon: Icons.thermostat,
                   iconColor: Colors.green,
@@ -241,7 +264,6 @@ class PatientDashboard extends ConsumerWidget {
                 VitalCard(
                   label: 'Blood Sugar',
                   value: bloodSugar,
-                  unit: '',
                   status: 'Normal',
                   icon: Icons.bloodtype,
                   iconColor: Colors.green,
@@ -249,45 +271,50 @@ class PatientDashboard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
-            // Health Alerts box
-            Container(
-              padding: const EdgeInsets.all(16),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.shade200),
+            // Health Alerts section
+            if (healthAlerts.isNotEmpty) ...[
+              const Text(
+                'Health Alerts',
+                style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.warning_amber_rounded, color: Colors.red),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Time to take your evening medication',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                              fontSize: 16),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          '6:00 PM',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
+              const SizedBox(height: 16),
+              Column(
+                children: healthAlerts.map<Widget>((alert) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: HealthAlertCard(
+                      alert: alert,
+                      onViewDetails: (alertId) {
+                        debugPrint('Viewing details for alert: $alertId');
+                        // Implement navigation or show alert details
+                      },
                     ),
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: const Text('View Details'),
-                  )
-                ],
+                  );
+                }).toList(),
               ),
-            ),
+            ] else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle_outline, color: Colors.blue.shade700),
+                    const SizedBox(width: 12),
+                    Text(
+                      'No new health alerts at this time.',
+                      style: TextStyle(color: Colors.blue.shade700, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -295,19 +322,224 @@ class PatientDashboard extends ConsumerWidget {
   }
 }
 
+class CustomAppBar extends StatelessWidget {
+  final double screenWidth;
+  final List<String> navigationTitles;
+  final int selectedPageIndex;
+  final void Function(int) onNavigate;
+  final VoidCallback onNotification;
+  final VoidCallback onChat;
+  final VoidCallback onProfile;
+  final VoidCallback onLogout;
+
+  const CustomAppBar({
+    super.key,
+    required this.screenWidth,
+    required this.navigationTitles,
+    required this.selectedPageIndex,
+    required this.onNavigate,
+    required this.onNotification,
+    required this.onChat,
+    required this.onProfile,
+    required this.onLogout,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isLargeScreen = screenWidth >= 800;
+
+    return AppBar(
+      toolbarHeight: 60,
+      backgroundColor: Colors.white,
+      elevation: 1,
+      titleSpacing: 20,
+      title: Row(
+        children: [
+          if (!isLargeScreen)
+            Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu, color: Colors.black54),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+            ),
+          // App Icon
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00D2FF), Color(0xFF3A7BD5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.favorite, color: Colors.white),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: const [
+              Text(
+                'Healthy Vibes',
+                style: TextStyle(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18),
+              ),
+              Text(
+                'Patient Dashboard',
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              )
+            ],
+          ),
+          const Spacer(),
+          // Menu Items for large screens
+          if (isLargeScreen)
+            Row(
+              children: navigationTitles.asMap().entries.map<Widget>((entry) {
+                final int index = entry.key;
+                final String title = entry.value;
+                final bool isSelected = index == selectedPageIndex;
+                return TextButton(
+                  onPressed: () => onNavigate(index),
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                        color: isSelected ? const Color(0xFF00D2FF) : Colors.black54,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontSize: 14),
+                  ),
+                );
+              }).toList(),
+            ),
+          const SizedBox(width: 20),
+          // Icons on right
+          IconButton(
+              onPressed: onNotification,
+              icon: const Icon(Icons.notifications_none, color: Colors.black54)),
+          IconButton(
+              onPressed: onChat,
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.black54)),
+          IconButton(
+              onPressed: onProfile,
+              icon: const Icon(Icons.person_outline, color: Colors.black54)),
+          if (isLargeScreen) ...[
+            const SizedBox(width: 8),
+            const Text('nishme', style: TextStyle(color: Colors.black87)),
+            const SizedBox(width: 8),
+            TextButton(onPressed: onLogout, child: const Text('Logout')),
+          ]
+        ],
+      ),
+    );
+  }
+}
+
+class CustomDrawer extends StatelessWidget {
+  final List<String> navigationTitles;
+  final int selectedPageIndex;
+  final void Function(int) onNavigate;
+
+  const CustomDrawer({
+    super.key,
+    required this.navigationTitles,
+    required this.selectedPageIndex,
+    required this.onNavigate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00D2FF), Color(0xFF3A7BD5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Icon(Icons.favorite, color: Colors.white, size: 48),
+                SizedBox(height: 12),
+                Text(
+                  'Healthy Vibes',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...navigationTitles.asMap().entries.map<Widget>((entry) {
+            final int index = entry.key;
+            final String title = entry.value;
+            final bool isSelected = index == selectedPageIndex;
+            return ListTile(
+              leading: Icon(_getNavigationIcon(index),
+                  color: isSelected ? const Color(0xFF00D2FF) : Colors.black54),
+              title: Text(
+                title,
+                style: TextStyle(
+                  color: isSelected ? const Color(0xFF00D2FF) : Colors.black87,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              selected: isSelected,
+              onTap: () => onNavigate(index),
+            );
+          }).toList(),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout, color: Colors.black54),
+            title: const Text('Logout'),
+            onTap: () => debugPrint('Logout from drawer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getNavigationIcon(int index) {
+    switch (index) {
+      case 0:
+        return Icons.dashboard;
+      case 1:
+        return Icons.track_changes;
+      case 2:
+        return Icons.medication;
+      case 3:
+        return Icons.recommend;
+      case 4:
+        return Icons.event;
+      case 5:
+        return Icons.bar_chart;
+      default:
+        return Icons.info_outline;
+    }
+  }
+}
+
 class VitalCard extends StatelessWidget {
   final String label;
   final String value;
-  final String unit;
   final String status;
   final IconData icon;
   final Color iconColor;
+  final String unit; // Made unit optional with a default empty string
 
   const VitalCard({
     super.key,
     required this.label,
     required this.value,
-    required this.unit,
+    this.unit = '', // Default to empty string
     required this.status,
     required this.icon,
     required this.iconColor,
@@ -320,6 +552,14 @@ class VitalCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -338,7 +578,7 @@ class VitalCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text.rich(
                   TextSpan(
-                    children: [
+                    children: <TextSpan>[
                       TextSpan(
                         text: value,
                         style: const TextStyle(
@@ -356,10 +596,10 @@ class VitalCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   status,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 12,
-                      color: Colors.green),
+                      color: iconColor), // Use iconColor for status consistency
                 )
               ],
             ),
@@ -368,8 +608,88 @@ class VitalCard extends StatelessWidget {
             width: 12,
             height: 12,
             decoration: BoxDecoration(
-              color: Colors.green,
+              color: iconColor, // Use iconColor for the status indicator
               shape: BoxShape.circle,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class HealthAlertCard extends StatelessWidget {
+  final HealthAlert alert;
+  final void Function(String) onViewDetails;
+
+  const HealthAlertCard({
+    super.key,
+    required this.alert,
+    required this.onViewDetails,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color borderColor =
+        alert.isWarning ? Colors.red.shade200 : Colors.blue.shade200;
+    final Color textColor =
+        alert.isWarning ? Colors.red.shade700 : Colors.blue.shade700;
+    final Color backgroundColor =
+        alert.isWarning ? Colors.red.shade50 : Colors.blue.shade50;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 3,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(alert.icon, color: alert.iconColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  alert.title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                      fontSize: 16),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  alert.message,
+                  style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${alert.time.hour % 12 == 0 ? 12 : alert.time.hour % 12}:${alert.time.minute.toString().padLeft(2, '0')} ${alert.time.hour >= 12 ? 'PM' : 'AM'} - ${alert.time.month}/${alert.time.day}',
+                  style: TextStyle(color: textColor.withOpacity(0.6), fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: TextButton(
+              onPressed: () => onViewDetails(alert.id),
+              child: Text(
+                'View Details',
+                style: TextStyle(color: textColor),
+              ),
             ),
           )
         ],
