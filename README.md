@@ -33,5 +33,10 @@ tsfresh: For time-series feature extraction—great for patient monitoring data.
 
 
 
+CREATING a Blockchain for Secure Medical Records 
+Decentralized data management in healthcare refers to the storage and handling of medical records across a network of distributed nodes. Instead of a single entity holding control, data is spread out, enhancing accessibility and security.
+
+
+
 
 
